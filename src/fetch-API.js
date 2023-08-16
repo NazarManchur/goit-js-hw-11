@@ -1,5 +1,5 @@
 import axios from "axios";
-import page from "../src/index";
+import page from "./index.js";
 const BASE_URL = "https://pixabay.com/api/";
 const API_KEY = "38869730-11eaccfd36e9480f0aa153a8d";
 
