@@ -1,84 +1,36 @@
-import { fetchImages } from "../src/fetch-API";
-import Notiflix from 'notiflix';
-const formEl = document.querySelector('#search-form');
-const galleryEl = document.querySelector('.gallery');
-const loadMoreBtnEl = document.querySelector('.load-more');
-loadMoreBtnEl.classList.add("is-hidden");
+import axios from 'axios';
+const popularRecipesWrapper = document.querySelector(".popular-list");
 
-let queryParam = "";
-export let page = 1;
-let totalHits = null;
-
-
-formEl.addEventListener('input', onInputHandler); 
-function onInputHandler(e) {
-  queryParam = e.target.value.trim();
+if (popularRecipesWrapper) {
+  popularRecipesRender();
 }
-
-
-formEl.addEventListener('submit', onSubmitHandler);
-function onSubmitHandler(e) {
-    e.preventDefault();
-    clearGallery();
-    createMarkup();
+async function getRecipes() {
+  const POPUPLAR_API = 'https://tasty-treats-backend.p.goit.global/api/recipes/popular';
+  try {
+    const response = await axios.get(POPUPLAR_API);
+    return response.data;
+  } catch (error) {
+    console.log("error1")
   }
-
-
-async function createMarkup() {
-    try {
-        const response = await fetchImages(queryParam, page);
-        const hits = response.data.hits;
-        const markup = hits.map(({ webformatURL, tags, likes, views, comments, downloads }) => {
-            return `
-                <div class="photo-card">
-                    <img src="${webformatURL}" 
-                        alt="${tags}" 
-                        loading="lazy"
-                        height="270px" />
-                    <div class="info">
-                        <p class="info-item">
-                            <b>Likes ${likes}</b>
-                        </p>
-                        <p class="info-item">
-                            <b>Views ${views}</b>
-                        </p>
-                        <p class="info-item">
-                            <b>Comments ${comments}</b>
-                        </p>
-                        <p class="info-item">
-                            <b>Downloads ${downloads}</b>
-                        </p>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        galleryEl.insertAdjacentHTML("beforeend", markup);
-
-        if (hits.length > 0) {
-            loadMoreBtnEl.classList.remove("is-hidden");
-            totalHits = response.data.totalHits;
-            const totalPages = Math.ceil(totalHits / 40);
-            if (page >= totalPages) {loadMoreBtnEl.classList.add("is-hidden")}
-        } else {
-            loadMoreBtnEl.classList.add("is-hidden");
-            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-        }
-    } catch (error) {
-        console.error(error);
-    }
 }
-
-
-loadMoreBtnEl.addEventListener('click', onLoadMoreHandle)
-function onLoadMoreHandle() {
-    page += 1;
-    createMarkup();
-}
-
-
-function clearGallery() {
-    galleryEl.innerHTML = "";
-    loadMoreBtnEl.classList.add("is-hidden");
-    page = 1;
+async function popularRecipesRender() {
+  try {
+    const data = await getRecipes();
+    const markup = popularRecipesMarkup(data);
+    popularRecipes.insertAdjacentHTML('beforeend', markup.join(''));
+  } catch (error) {
+    console.log("error2")
   }
+}
+function popularRecipesMarkup(recipes) {
+  return recipes.map(({ title, description, preview }) => {
+    return `
+         <li>
+            <a href="#!">
+               <img src="${preview}" alt="${title}">
+               <h3>${title}</h3>
+               <p>${description}</p>
+            </a>
+         </li>`;
+  });
+}
